@@ -39,8 +39,16 @@ int main()
 	
 	SocketHolder::start();
 	SocketHolder server(AF_INET,"127.0.0.1",port);
-	if(server.bind()==-1) std::cerr<< "bind err\n";
-	if(server.listen(5)==-1) std::cerr<< "listen err\n";
+	if(server.bind()==-1) 
+	{
+		printf("Bind error (code: %d)\n", server.getLastError());
+		return -3;
+	}
+	if(server.listen(5)==-1) 
+	{
+		printf("Listen error (code: %d)\n", server.getLastError());
+		return -4;
+	}
 	
 	std::list<SocketHolder> clients;
 	std::vector<std::list<SocketHolder>::iterator> clients_iter(100, clients.end());

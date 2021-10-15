@@ -101,7 +101,7 @@ int main()
 		recv_size=client.connect();
 		if(recv_size==-1) 
 		{
-			std::cerr <<"Server connect error\n";
+		printf("Server connect error\n");
 			return -3;
 		}
 		
@@ -121,7 +121,7 @@ int main()
 		
 		if(recv_size==-1) 
 		{
-			std::cerr <<"Send error\n";
+			printf("Send error (code: %d)\n", client.getLastError());
 			continue;
 		}
 		
@@ -156,7 +156,7 @@ int main()
 			}
 			else
 			{
-				std::cerr <<"Server returned incorrect values set\n";
+				printf("Server returned incorrect values set\n");
 			}
 		}
 		else
@@ -166,15 +166,15 @@ int main()
 				switch((unsigned char)buff[2])
 				{
 					case 0x1:
-					std::cerr <<"Server returned ILLEGAL FUNCTION  error\n";
+					printf("Server returned ILLEGAL FUNCTION  error\n");
 					break;
 					case 0x2:
-					std::cerr <<"Server returned ILLEGAL DATA ADDRESS  error\n";
-					std::cerr <<"Incorrect first register value\n";
+					printf("Server returned ILLEGAL DATA ADDRESS  error\n");
+					printf("Incorrect first register value\n");
 					break;
 					case 0x3:
-					std::cerr <<"Server returned ILLEGAL DATA VALUE  error\n";
-					std::cerr <<"Incorrect number of registers value\n";
+					printf("Server returned ILLEGAL DATA VALUE  error\n");
+					printf("Incorrect number of registers value\n");
 					break;
 				}
 			}	
