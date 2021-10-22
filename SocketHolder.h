@@ -16,6 +16,8 @@
 #else
 	#include <unistd.h>
 	#include <arpa/inet.h>
+	#include <arpa/time.h>
+	#include <sys/ioctl.h>
 	#include <sys/socket.h>
 	#include <errno.h>
 #endif
@@ -47,6 +49,7 @@ class SocketHolder
 	void accept(std::list<SocketHolder>*);
 	int listen(int backlog);
 	int connect();
+	int connect(int timeout);
 	int bind();
 	int send(const char* buffer, const size_t size);
 	int recv(char *buf, int len);

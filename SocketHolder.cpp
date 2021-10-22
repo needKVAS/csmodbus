@@ -29,6 +29,46 @@ int SocketHolder::connect()
 {
 	return ::connect(hsocket, (sockaddr*)&socket_addr, sizeof(socket_addr));
 }
+int SocketHolder::connect(int timeout)
+{
+	u_long block = 1;
+	#ifdef _WIN32
+	ioctlsocket(hsocket, FIONBIO, &block);
+	#else
+	ioctl(hsocket, FIONBIO, &block);
+	#endif
+	int out;
+	fd_set	w_sock,e_sock;
+	timeval	time_out;
+	time_out.tv_sec = timeout;
+	time_out.tv_usec = 0; 
+	
+	FD_ZERO (&w_sock);
+	FD_SET (hsocket, &w_sock);
+	FD_ZERO (&e_sock);
+	FD_SET (hsocket, &e_sock);
+	::connect(hsocket, (sockaddr*)&socket_addr, sizeof(socket_addr));
+	::select(0,NULL,&w_sock,&e_sock, &time_out);
+	if(FD_ISSET(hsocket, &w_sock))
+	{
+		out=0;
+	}
+	else if(FD_ISSET(hsocket, &e_sock))
+	{
+		out=-1;
+	}
+	else 
+	{
+		out=-1;
+	}
+	block = 0;
+	#ifdef _WIN32
+	ioctlsocket(hsocket, FIONBIO, &block);
+	#else
+	ioctl(hsocket, FIONBIO, &block);
+	#endif
+	return out;
+}
 int SocketHolder::listen(int backlog)
 {
 	return ::listen(hsocket,backlog);

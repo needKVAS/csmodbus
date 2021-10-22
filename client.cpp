@@ -174,10 +174,10 @@ int main()
 		std::string buff; 
 		char buff_c[BUFF_SIZE+1];
 		int recv_size;
-		recv_size=client.connect();
+		recv_size=client.connect(3);
 		if(recv_size==-1) 
 		{
-			std::cout <<"Server connect error\n";
+			std::cout << "Server connect error (code: "<<client.getLastError()<<")\n";
 			return -3;
 		}
 		
