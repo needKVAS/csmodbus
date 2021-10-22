@@ -109,7 +109,7 @@ int main()
 	for(int i=0;i<10;i++) data[i]=i+1;
 	
 	SocketHolder::start();
-	SocketHolder server(AF_INET,"127.0.0.1",port);
+	SocketHolder server(AF_INET,"0.0.0.0",port);
 	if(server.bind()==-1) 
 	{
 		std::cout << "Bind error (code: "<<server.getLastError()<<")\n";

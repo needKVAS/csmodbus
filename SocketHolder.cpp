@@ -48,8 +48,12 @@ int SocketHolder::connect(int timeout)
 	FD_ZERO (&e_sock);
 	FD_SET (hsocket, &e_sock);
 	::connect(hsocket, (sockaddr*)&socket_addr, sizeof(socket_addr));
-	::select(0,NULL,&w_sock,&e_sock, &time_out);
-	if(FD_ISSET(hsocket, &w_sock))
+	int result=::select(0,NULL,&w_sock,&e_sock, &time_out);
+	if(result==0)
+	{
+		out=-1;
+	}
+	else if(FD_ISSET(hsocket, &w_sock))
 	{
 		out=0;
 	}
