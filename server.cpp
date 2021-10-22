@@ -4,6 +4,7 @@
 #include <chrono>
 #include <string>
 #include <mutex>
+#include <fstream>
 #include "SocketHolder.h"
 #include "CRC16.h"
 #define BUFF_SIZE 2048
@@ -16,22 +17,75 @@ uint16_t data[10]={1,2,3,4,5,6,7,8,9,10};
 
 int main()
 {
-	FILE * pif;
-	pif = fopen ("server.txt","r");
+	std::ifstream file;
+	file.open ("server.txt", std::ifstream::in);
+	if (!file.is_open())
+	{
+		std::cout << "Error opening file\n";
+		return -1;
+	}
+	
 	unsigned int modbus_addr;
 	int port;
-	int result=fscanf(pif, "%u\n%u\n", &modbus_addr,&port);
-	/*printf("Result: %d\n",result);
-	printf("Readed: %u\n%u\n",modbus_addr,port);*/
-	if(result!=2)
+	std::string buff;
+	
+	//
+	//Modbus addres
+	/////////
+	std::getline(file,buff);
+	size_t pos=buff.find_first_not_of("0123456789 \t\r");
+	if(pos!=std::string::npos)
 	{
-		printf("Incorrect input file\n");
-		return -1;
+		std::cout << "Incorrect modbus address ("<< buff <<")\n";
+		return -2;
+	}
+	try
+	{
+		modbus_addr=stoi(buff);
+	}
+	catch(std::invalid_argument& e)
+	{
+		std::cout << "Incorrect modbus address\n";
+		return -2;
+	}
+	catch(std::out_of_range& e)
+	{
+		std::cout << "Incorrect modbus address\n";
+		return -2;
 	}
 	if((0==modbus_addr)&&(modbus_addr>247))
 	{
-		printf("Incorrect modbus address\n");
+		std::cout << "Incorrect modbus address\n";
 		return -2;
+	}
+	//
+	//Port
+	/////////
+	std::getline(file,buff);
+	pos=buff.find_first_not_of("0123456789 \t\r");
+	if(pos!=std::string::npos)
+	{
+		std::cout << "Incorrect port ("<< buff <<")\n";
+		return -3;
+	}
+	try
+	{
+		port=stoi(buff);
+	}
+	catch(std::invalid_argument& e)
+	{
+		std::cout << "Incorrect port\n";
+		return -3;
+	}
+	catch(std::out_of_range& e)
+	{
+		std::cout << "Incorrect port\n";
+		return -3;
+	}
+	if((port>0xffff))
+	{
+		std::cout << "Incorrect port should not be more than 16 bit\n";
+		return -3;
 	}
 	
 	
@@ -41,12 +95,12 @@ int main()
 	SocketHolder server(AF_INET,"127.0.0.1",port);
 	if(server.bind()==-1) 
 	{
-		printf("Bind error (code: %d)\n", server.getLastError());
+		std::cout << "Bind error (code: "<<server.getLastError()<<")\n";
 		return -3;
 	}
 	if(server.listen(5)==-1) 
 	{
-		printf("Listen error (code: %d)\n", server.getLastError());
+		std::cout << "Listen error (code: "<<server.getLastError()<<")\n";
 		return -4;
 	}
 	
@@ -112,18 +166,20 @@ void recvandsend(SocketHolder *sock_clt, int*inactive, int modbus_addr)
 	do
 	{
 		recv_size = sock_clt->recv(buff_c, BUFF_SIZE);
-		if(recv_size==-1) printf("Recv error (code: %d)\n", sock_clt->getLastError());
-		
+		if(recv_size==-1)
+		{
+			std::cout << "Recv error (code: "<<sock_clt->getLastError()<<")\n";
+		}
 		if (recv_size > 0)
 		{
 			buff.reserve(recv_size);
-			printf("Received:\n");
+			std::cout << "Received:\n";
 			for(int k=0;k<recv_size; k++) 
 			{
-				printf("%x ", (unsigned char)buff_c[k]);
+				std::cout << std::hex << (unsigned char)buff_c[k] << " ";
 				buff.push_back(buff_c[k]);
 			}
-			printf("\n");
+			std::cout << "\n";
 		}
 	}while(recv_size > 0);
 	sock_clt->shutdown(0);
@@ -139,7 +195,7 @@ void recvandsend(SocketHolder *sock_clt, int*inactive, int modbus_addr)
 			if((first<=10)&&(first>0))
 			{
 				num=(buff[4]<<8)|(buff[5]);
-				if((num>0)&&((first+num-1)<=10))
+				if((num>0)&&((first+num-1)<=10)&&(num<=10))
 				{
 					buff.clear();
 					buff.reserve(5+2*num);
