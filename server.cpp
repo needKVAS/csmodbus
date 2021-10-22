@@ -193,7 +193,7 @@ void recvandsend(SocketHolder *sock_clt, int*inactive, int modbus_addr)
 			std::cout << "Received:\n";
 			for(int k=0;k<recv_size; k++) 
 			{
-				std::cout << std::hex << (unsigned char)buff_c[k] << " ";
+				printf("%x ", (unsigned char)buff_c[k]);
 				buff.push_back(buff_c[k]);
 			}
 			std::cout << "\n";
@@ -245,9 +245,9 @@ void recvandsend(SocketHolder *sock_clt, int*inactive, int modbus_addr)
 		
 		
 		recv_size=sock_clt->send(&buff[0], buff.size());
-		sock_clt->shutdown(1);
+		
 	}
-	
+	sock_clt->shutdown(1);
 	mtx.lock();
 	*inactive=1;
 	mtx.unlock();
