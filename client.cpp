@@ -1,27 +1,109 @@
 #include <iostream>
 #include <string>
+#include <fstream>
 #include "SocketHolder.h"
 #include "CRC16.h"
 #define BUFF_SIZE 2048
+bool getIPoctet(std::string str, unsigned int &out);
+bool getuint(std::string str, unsigned int &out);
 int main()
 {
-	FILE * pif;
-	pif = fopen ("client.txt","r");
-	unsigned int ip1,ip2,ip3,ip4;
-	unsigned int port;
-	int result=fscanf(pif, "%u.%u.%u.%u\n%u", &ip1,&ip2,&ip3,&ip4,&port);
-	if(result!=5)
+	
+	std::ifstream file;
+	file.open ("client.txt", std::ifstream::in);
+	if (!file.is_open())
 	{
-		printf("Incorrect input file\n");
+		std::cout << "Error opening file";
 		return -1;
 	}
-	if((ip1>255)&&(ip2>255)&&(ip3>255)&&(ip4>255))
+	
+	std::string buff;
+	
+	unsigned int ip1,ip2,ip3,ip4;
+	unsigned int port;
+	//
+	//IP
+	//////
+	if(file.good())
 	{
-		printf("Incorrect ip\n");
+		std::getline(file,buff,'.');
+	}
+	else
+	{
+		std::cout << "Incorrect input file\n";
 		return -2;
 	}
-	//printf("Result: %d\n",result);
-	//printf("Readed: %u.%u.%u.%u\n%u\n",ip1,ip2,ip3,ip4,port);
+	if(!getIPoctet(buff, ip1))
+	{
+		std::cout<<"Incorrect ip\n";
+		return -3;
+	}
+	if(file.good())
+	{
+		std::getline(file,buff,'.');
+	}
+	else
+	{
+		std::cout << "Incorrect input file\n";
+		return -2;
+	}
+	if(!getIPoctet(buff, ip2))
+	{
+		std::cout<<"Incorrect ip\n";
+		return -3;
+	}
+	if(file.good())
+	{
+		std::getline(file,buff,'.');
+	}
+	else
+	{
+		std::cout << "Incorrect input file\n";
+		return -2;
+	}
+	if(!getIPoctet(buff, ip3))
+	{
+		std::cout<<"Incorrect ip\n";
+		return -3;
+	}
+	if(file.good())
+	{
+		std::getline(file,buff);
+	}
+	else
+	{
+		std::cout << "Incorrect input file\n";
+		return -2;
+	}
+	if(!getIPoctet(buff, ip4))
+	{
+		std::cout<<"Incorrect ip\n";
+		return -3;
+	}
+	//
+	//Port
+	/////////
+	if(file.good())
+	{
+		std::getline(file,buff);
+	}
+	else
+	{
+		std::cout << "Incorrect input file\n";
+		return -2;
+	}
+	if(!getuint(buff, port))
+	{
+		std::cout << "Incorrect port\n";
+		return -3;
+	}
+	if((port>0xffff))
+	{
+		std::cout << "Incorrect port, port should not be more than 16 bit\n";
+		return -3;
+	}
+	
+	std::cout << "Host: "<< ip1 <<"."<< ip2 <<"."<< ip3 <<"." << ip4 <<"   "<< port <<"\n";
 	
 	SocketHolder::start();
 	while(true)
@@ -30,19 +112,17 @@ int main()
 		int err;
 		while(true)
 		{
-			printf("\nModbus addres: ");
-			fflush(stdin);
-			err=scanf("%u",&modbus_addr);
-			if((err==-1)||(err==0))
+			std::cout <<"Modbus addres: ";
+			std::getline(std::cin,buff);
+			if(!getuint(buff, modbus_addr))
 			{
-				printf("\nIncorrect modbus addres");
+				std::cout << "Incorrect modbus addres\n";
 				continue;
 			}
-			//printf("Scanned modbus addres: %u",modbus_addr);
 			if(modbus_addr>0xff)
 			{
-				printf("\nIncorrect modbus addres");
-				printf("\nModbus addres should not be more than 8 bit");
+				std::cout <<"Incorrect modbus addres\n";
+				std::cout <<"Modbus addres should not be more than 8 bit\n";
 				continue;
 			}
 			else
@@ -52,18 +132,16 @@ int main()
 		}
 		while(true)
 		{
-			printf("\nFirst register: ");
-			fflush(stdin);
-			err=scanf("%u",&first);
-			if((err==-1)||(err==0))
+			std::cout <<"First register: ";
+			std::getline(std::cin,buff);
+			if(!getuint(buff, first))
 			{
-				printf("\nIncorrect first register");
+				std::cout << "Incorrect first register\n";
 				continue;
 			}
-			//printf("Scanned modbus addres: %u",modbus_addr);
 			if(first>0xffff)
 			{
-				printf("\nFirst register should not be more than 16 bit");
+				std::cout <<"First register should not be more than 16 bit\n";
 				continue;
 			}
 			else
@@ -73,18 +151,16 @@ int main()
 		}
 		while(true)
 		{
-			printf("\nNumber of registers: ");
-			fflush(stdin);
-			err=scanf("%u",&num);
-			if((err==-1)||(err==0))
+			std::cout <<"Number of registers: ";
+			std::getline(std::cin,buff);
+			if(!getuint(buff, num))
 			{
-				printf("\nIncorrect number of registers");
+				std::cout << "Incorrect number of registers\n";
 				continue;
 			}
-			//printf("Scanned modbus addres: %u",modbus_addr);
-			if(first>0xffff)
+			if(num>0xffff)
 			{
-				printf("\nNumber of registers should not be more than 16 bit");
+				std::cout <<"Number of registers should not be more than 16 bit\n";
 				continue;
 			}
 			else
@@ -101,7 +177,7 @@ int main()
 		recv_size=client.connect();
 		if(recv_size==-1) 
 		{
-		printf("Server connect error\n");
+			std::cout <<"Server connect error\n";
 			return -3;
 		}
 		
@@ -121,7 +197,7 @@ int main()
 		
 		if(recv_size==-1) 
 		{
-			printf("Send error (code: %d)\n", client.getLastError());
+			std::cout << "Send error (code: "<<client.getLastError()<<")\n";
 			continue;
 		}
 		
@@ -132,53 +208,107 @@ int main()
 		do
 		{
 			recv_size = client.recv(buff_c, BUFF_SIZE);
-			buff.reserve(recv_size);
 			if(recv_size>0)
 			{
-				printf("\nReceived:\n");
+				buff.reserve(recv_size);
+				std::cout << "Received:\n";
 				for(int k=0;k<recv_size; k++) 
 				{
 					printf("%x ", (unsigned char)buff_c[k]);
 					buff.push_back(buff_c[k]);
 				}
+				std::cout << "\n";
+
 			}
 		}while(recv_size > 0);
-		printf("\n");
 		client.shutdown(0);
-		
-		if(((unsigned char)buff[1])==0x3)
+		if(buff.size()>0)
 		{
-			if(((unsigned char)buff[2])==(2*num))
+			if(((unsigned char)buff[1])==0x3)
 			{
-				printf("\nRegister values: \n");
-				for(int i=0; i<(2*num);i+=2) printf("%u: %x ",first+i/2,(((unsigned char)buff[3+i])<<8)|((unsigned char)buff[4+i]));
-				printf("\n");
+				if(((unsigned char)buff[2])==(2*num))
+				{
+					std::cout <<"Register values: \n";
+					for(int i=0; i<(2*num);i+=2) printf("%u: %x ",first+i/2,(((unsigned char)buff[3+i])<<8)|((unsigned char)buff[4+i]));
+					std::cout <<"\n";
+				}
+				else
+				{
+					std::cout <<"Server returned incorrect values set\n";
+				}
 			}
 			else
 			{
-				printf("Server returned incorrect values set\n");
+				if(((unsigned char)buff[1])==0x83)
+				{
+					switch((unsigned char)buff[2])
+					{
+						case 0x1:
+						std::cout <<"Server returned ILLEGAL FUNCTION  error\n";
+						break;
+						case 0x2:
+						std::cout <<"Server returned ILLEGAL DATA ADDRESS  error\n";
+						std::cout <<"Incorrect first register value\n";
+						break;
+						case 0x3:
+						std::cout <<"Server returned ILLEGAL DATA VALUE  error\n";
+						std::cout <<"Incorrect number of registers value\n";
+						break;
+					}
+				}	
 			}
 		}
 		else
 		{
-			if(((unsigned char)buff[1])==0x83)
-			{
-				switch((unsigned char)buff[2])
-				{
-					case 0x1:
-					printf("Server returned ILLEGAL FUNCTION  error\n");
-					break;
-					case 0x2:
-					printf("Server returned ILLEGAL DATA ADDRESS  error\n");
-					printf("Incorrect first register value\n");
-					break;
-					case 0x3:
-					printf("Server returned ILLEGAL DATA VALUE  error\n");
-					printf("Incorrect number of registers value\n");
-					break;
-				}
-			}	
+			std::cout <<"Server returned nothing\n";
+			std::cout <<"Presumably the modbus address is incorrect\n";
 		}
 	}
 	return 0;
+}
+bool getIPoctet(std::string str, unsigned int &out)
+{
+	size_t pos=str.find_first_not_of("0123456789 \t\r");
+	if(pos!=std::string::npos)
+	{
+		return false;
+	}
+	try
+	{
+		out=stoi(str);
+	}
+	catch(std::invalid_argument& e)
+	{
+		return false;
+	}
+	catch(std::out_of_range& e)
+	{
+		return false;
+	}
+	if(out>0xff)
+	{
+		return false;
+	}
+	return true;
+}
+bool getuint(std::string str, unsigned int &out)
+{
+	size_t pos=str.find_first_not_of("0123456789 \t\r");
+	if(pos!=std::string::npos)
+	{
+		return false;
+	}
+	try
+	{
+		out=stoi(str);
+	}
+	catch(std::invalid_argument& e)
+	{
+		return false;
+	}
+	catch(std::out_of_range& e)
+	{
+		return false;
+	}
+	return true;
 }
