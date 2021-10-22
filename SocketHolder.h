@@ -16,7 +16,7 @@
 #else
 	#include <unistd.h>
 	#include <arpa/inet.h>
-	#include <arpa/time.h>
+	#include <sys/time.h>
 	#include <sys/ioctl.h>
 	#include <sys/socket.h>
 	#include <errno.h>
