@@ -101,7 +101,7 @@ int main()
 	}
 	if((port>0xffff))
 	{
-		std::cout << "Incorrect port should not be more than 16 bit\n";
+		std::cout << "Incorrect port, port should not be more than 16 bit\n";
 		return -3;
 	}
 	
