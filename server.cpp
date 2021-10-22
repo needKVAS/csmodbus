@@ -32,7 +32,16 @@ int main()
 	//
 	//Modbus addres
 	/////////
-	std::getline(file,buff);
+	if(file.good())
+	{
+		std::getline(file,buff);
+		
+	}
+	else
+	{
+		std::cout << "Incorrect input file\n";
+		return -2;
+	}
 	size_t pos=buff.find_first_not_of("0123456789 \t\r");
 	if(pos!=std::string::npos)
 	{
@@ -61,7 +70,15 @@ int main()
 	//
 	//Port
 	/////////
-	std::getline(file,buff);
+	if(file.good())
+	{
+		std::getline(file,buff);
+	}
+	else
+	{
+		std::cout << "Incorrect input file\n";
+		return -2;
+	}
 	pos=buff.find_first_not_of("0123456789 \t\r");
 	if(pos!=std::string::npos)
 	{
